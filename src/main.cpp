@@ -9,23 +9,34 @@ int currentButtonState = 0;
 unsigned long lastDebounceTime = 0;
 const unsigned long debounceDelay = 50;
 
-long buttonPressIntervals[3] = {0, 0, 0};
-int buttonPressCount = 0;
+long buttonPressIntervals[3] = {0, 0, 0}; //First value is the start point of the measurement; The others indicate the time intervals.
+int buttonPressCount = 0; //How often was the button pressed 
 
-int bpm = 120;
-long lastLEDBlinkTime = 0;
-boolean ledIsOn = false;
-int blinkDuration = 200; //ms => max BPM = 300
+int bpm = 120; //Start BPM
+long lastLEDBlinkTime = 0; 
+boolean ledIsOn = false; //Defines if the led is currently on
+int blinkDuration = 200; //Defines how long the led is on
 
+/**
+ * @brief Checks whether the button state was changed 
+ */
 void checkButtonState();
+/**
+ * @brief Checks whether the led should now flash
+ */
 void checkLEDBlink();
+/**
+ * @brief Checks whether the measurement should be aborted
+ */
 void checkForResetBPMMeasurement();
+/**
+ * @brief Resets the button measurement values.
+ */
 void resetButtonPressValues();
 
 void setup() {
   pinMode(inputPin, INPUT);
   pinMode(ledPin, OUTPUT);
-  Serial.begin(9600);
 }
 
 void loop() {
@@ -68,33 +79,21 @@ void checkButtonState()
           {
             buttonPressIntervals[0] = millis();
             ++buttonPressCount;
-
-            Serial.println("PRESSED ONE");
           }
-          else if(buttonPressCount == 1) //take two points 
+          else if(buttonPressCount == 1) 
           {
-            buttonPressIntervals[1] = millis() - buttonPressIntervals[0]; //10500 - 10000 = 500
+            buttonPressIntervals[1] = millis() - buttonPressIntervals[0];
             ++buttonPressCount;
-            Serial.println("PRESSED TWO");
           }
-          else if(buttonPressCount == 2) //take two points 
+          else if(buttonPressCount == 2) 
           {
-            buttonPressIntervals[2] = millis() - (buttonPressIntervals[1]+buttonPressIntervals[0]); // 110000 - (500+10000) = 500
+            buttonPressIntervals[2] = millis() - (buttonPressIntervals[1]+buttonPressIntervals[0]);
             ++buttonPressCount;
-            Serial.println("PRESSED THREE");
           }
-          else { //only if PressCount = 3  => calculate new bpm 
+          else { //calculate new bpm 
             bpm = 60000 / ((buttonPressIntervals[1] + buttonPressIntervals[2]) / 2);
 
-            Serial.print("PRESSED FOUR ");
-            Serial.print(buttonPressIntervals[1]);
-            Serial.print(" / ");
-            Serial.println(buttonPressIntervals[2]);
-
             resetButtonPressValues();
-
-            Serial.print("New BPM: ");
-            Serial.println(bpm);
           }
       }
     }
@@ -104,7 +103,7 @@ void checkButtonState()
 
 void checkForResetBPMMeasurement()
 {
-  if(millis() -buttonPressIntervals[0] > 1200*3) //3 pressed for 50 bpm
+  if(millis() - buttonPressIntervals[0] > 1200 * 3) //1200ms = 50 bpm 
   {
     resetButtonPressValues();
   }
